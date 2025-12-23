@@ -1,0 +1,11 @@
+apiVersion: ctlptl.dev/v1alpha1
+kind: Cluster
+product: kind
+name: kind-random-quote-cluster
+registry: ctlptl-registry
+kindV1Alpha4Cluster:
+  nodes:
+  - role: control-plane
+    image: kindest/node:v1.35.0
+  - role: worker
+    image: kindest/node:v1.35.0

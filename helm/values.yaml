@@ -1,0 +1,33 @@
+image:
+  repository: random-quote
+  pullPolicy: IfNotPresent
+  tag: v0.1.0
+
+cronjob:
+  schedule: "0 0 9 * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  ttlSecondsAfterFinished: 300
+  restartPolicy: Never
+  backoffLimit: 1
+  env: []
+  
+  resources:
+    limits:
+      cpu: 50m
+      memory: 32Mi
+    requests:
+      cpu: 20m
+      memory: 16Mi
+  
+  securityContext:
+    runAsUser: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+    fsGroup: 65532
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
