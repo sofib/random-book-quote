@@ -14,8 +14,13 @@ allow_k8s_contexts('kind-random-quote-cluster')
 print('Ensuring base cluster setup exist...')
 local(tools('ctlptl apply -f kind/cluster.yaml'), quiet=False, echo_off=False)
 local(tools('ctlptl apply -f kind/registry.yaml'), quiet=False, echo_off=False)
+
 local(tools('kubectl apply -f kind/namespace.yaml'), quiet=False, echo_off=False)
+
 print('Cluster setup complete')
+
+print('Configuring kubectl context...')
+k8s_context('kind-random-quote-cluster')
 
 local_resource(
     'destroy-cluster',
