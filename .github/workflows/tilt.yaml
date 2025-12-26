@@ -5,7 +5,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -52,6 +52,16 @@ jobs:
           url: https://github.com/tilt-dev/ctlptl/releases/download/v0.8.44/ctlptl.0.8.44.linux.x86_64.tar.gz
           checksum: sha256:f093e77047e3ba842270c88d747cf831a0299430d1bb4f4672d0247280584db2
           extract: 'true'
+
+      - name: Create Kind cluster and registry
+        id: kind
+        uses: helm/kind-action@92086f6be054225fa813e0a4b13787fc9088faab # v1.13.0
+        with:
+          cluster_name: random-quote-cluster
+          registry: true
+          registry_name: ctlptl-registry
+          registry_port: 5005
+          registry_enable_delete: true
 
       - name: Start tilt
         run: |

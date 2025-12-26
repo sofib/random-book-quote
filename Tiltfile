@@ -11,21 +11,21 @@ REGISTRY_HOST = 'localhost:5005'
 
 allow_k8s_contexts('kind-random-quote-cluster')
 
-print('Ensuring base cluster setup exist...')
-local(tools('ctlptl apply -f kind/cluster.yaml'), quiet=False, echo_off=False)
-local(tools('ctlptl apply -f kind/registry.yaml'), quiet=False, echo_off=False)
-local(tools('kubectl apply -f kind/namespace.yaml'), quiet=False, echo_off=False)
-
-# Config in CI was generated incorrectly, setting it manually, ensuring only one
-local(
-    tools('kind get kubeconfig --name random-quote-cluster > ~/.kube/config'),
-    quiet=False,
-    echo_off=False,
+local_resource(
+    'create-cluster',
+    cmd=tools('ctlptl apply -f kind/cluster.yaml'),
+    auto_init=False,
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    labels=['cluster']
 )
 
-print('Cluster setup complete')
-
-k8s_context('kind-random-quote-cluster')
+local_resource(
+    'create-registry',
+    cmd=tools('ctlptl apply -f kind/registry.yaml'),
+    auto_init=False,
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    labels=['cluster']
+)
 
 local_resource(
     'destroy-cluster',
