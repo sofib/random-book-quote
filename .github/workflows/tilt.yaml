@@ -1,0 +1,65 @@
+name: Verify kubernetes integration
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version: '1.24.4'
+      - name: Install kind
+        uses: ./.github/actions/download-dependency
+        with:
+          name: kind
+          url: https://github.com/kubernetes-sigs/kind/releases/download/v0.31.0/kind-linux-amd64
+          checksum: sha256:eb244cbafcc157dff60cf68693c14c9a75c4e6e6fedaf9cd71c58117cb93e3fa
+            
+      - name: Install kubectl
+        uses: ./.github/actions/download-dependency
+        with:
+          name: kubectl
+          url: https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl
+          checksum: sha256:646d58f6d98ee670a71d9cdffbf6625aeea2849d567f214bc43a35f8ccb7bf70
+
+      - name: Install helm
+        uses: ./.github/actions/download-dependency
+        with:
+          name: helm
+          url: https://get.helm.sh/helm-v4.0.4-linux-amd64.tar.gz
+          checksum: sha256:29454bc351f4433e66c00f5d37841627cbbcc02e4c70a6d796529d355237671c
+          extract: 'true'
+          binary-path: linux-amd64/helm
+
+      - name: Install tilt
+        uses: ./.github/actions/download-dependency
+        with:
+          name: tilt
+          url: https://github.com/tilt-dev/tilt/releases/download/v0.36.0/tilt.0.36.0.linux.x86_64.tar.gz
+          checksum: sha256:9ce610083efc76ffa518ec9b001ddb1711b652adce3333f57ffff6be50ad9719
+          extract: 'true'
+
+      - name: Install ctlptl
+        uses: ./.github/actions/download-dependency
+        with:
+          name: ctlptl
+          url: https://github.com/tilt-dev/ctlptl/releases/download/v0.8.44/ctlptl.0.8.44.linux.x86_64.tar.gz
+          checksum: sha256:f093e77047e3ba842270c88d747cf831a0299430d1bb4f4672d0247280584db2
+          extract: 'true'
+
+      - name: Start tilt
+        run: |
+          ls -la ./tools
+          ./tools/tilt ci --output-snapshot-on-exit=snapshot.json
+      
+      - name: Upload snapshot artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: tilt-snapshot
+          path: snapshot.json
