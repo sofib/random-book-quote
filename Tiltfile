@@ -12,32 +12,6 @@ REGISTRY_HOST = 'localhost:5005'
 allow_k8s_contexts('kind-random-quote-cluster')
 
 local_resource(
-    'create-cluster',
-    cmd=tools('ctlptl apply -f kind/cluster.yaml'),
-    auto_init=False,
-    trigger_mode=TRIGGER_MODE_MANUAL,
-    labels=['cluster']
-)
-
-local_resource(
-    'create-registry',
-    cmd=tools('ctlptl apply -f kind/registry.yaml'),
-    auto_init=False,
-    trigger_mode=TRIGGER_MODE_MANUAL,
-    resource_deps=['create-cluster'],
-    labels=['cluster']
-)
-
-local_resource(
-    'destroy-cluster',
-    cmd=tools('ctlptl delete -f kind/cluster.yaml'),
-    auto_init=False,
-    trigger_mode=TRIGGER_MODE_MANUAL,
-    resource_deps=['create-cluster'],
-    labels=['cluster']
-)
-
-local_resource(
     'create-namespace',
     cmd=tools('kubectl apply -f kind/namespace.yaml'),
     trigger_mode=TRIGGER_MODE_AUTO,
@@ -73,15 +47,17 @@ helm_resource(
     ],
     image_deps=['%s/%s' % (REGISTRY_HOST, IMAGE_NAME)],
     image_keys=[('image.repository', 'image.tag')],
+    port_forwards=[],
     labels=['random-quote'],
     resource_deps=['create-namespace'],
+    pod_readiness='ignore',
 )
 
 local_resource(
-    'manual-run',
+    'run-job',
     cmd=tools('kubectl create job --from cronjob/random-quote -n %s test-job-$(date +%%s)' % NAMESPACE),
     labels=['random-quote'],
-    resource_deps=['create-namespace'],
-    auto_init=False,
-    trigger_mode=TRIGGER_MODE_MANUAL,
+    resource_deps=['random-quote'],
+    auto_init=True,
+    trigger_mode=TRIGGER_MODE_AUTO,
 )
