@@ -1,10 +1,12 @@
+TOOLS_PATH ?= $(shell pwd)/tools/
+
 .PHONY: cluster-up
 cluster-up:
-	ctlptl apply -f kind/cluster.yaml
+	${TOOLS_PATH}ctlptl apply -f kind/cluster.yaml
 
 .PHONY: cluster-down
 cluster-down:
-	ctlptl delete -f kind/cluster.yaml
+	${TOOLS_PATH}ctlptl delete -f kind/cluster.yaml
 
 .PHONY: lint
 lint:

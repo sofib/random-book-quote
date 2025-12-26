@@ -1,0 +1,93 @@
+name: 'Download Dependency'
+description: 'Download a binary or archive and verify its checksum'
+inputs:
+  name:
+    description: 'Name of the dependency'
+    required: true
+  url:
+    description: 'URL to download the dependency from'
+    required: true
+  checksum:
+    description: 'SHA256 checksum to verify (format: sha256:hash)'
+    required: true
+  binary-path:
+    description: 'Path to binary inside archive'
+    required: false
+    default: ''
+  extract:
+    description: 'Whether to extract archive (true/false)'
+    required: false
+    default: 'false'
+  destination:
+    description: 'Destination directory'
+    required: true
+    default: tools
+  cache:
+    description: 'Whether to cache the dependency (true/false)'
+    required: false
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache install
+      uses: actions/cache@v4
+      id: cache-install
+      if: inputs.cache == 'true'
+      with:
+        path: "/tmp/${{ inputs.name }}.download"
+        key: ${{ inputs.name }}-${{ inputs.checksum }}
+        restore-keys: |
+          ${{ inputs.name }}
+    - name: Download ${{ inputs.name }}
+      env:
+        CACHE_HIT: ${{ steps.cache-install.outputs.cache-hit }}
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        DESTINATION_DIR="${{ inputs.destination }}"
+        mkdir -p "$DESTINATION_DIR"
+
+        DOWNLOAD_PATH="/tmp/${{ inputs.name }}.download"
+        if [ ! -f "$DOWNLOAD_PATH" ] || [ "$CACHE_HIT" != "true" ]; then
+          echo "Downloading ${{ inputs.name }} from ${{ inputs.url }} to $DOWNLOAD_PATH"
+          curl -fsSL -o $DOWNLOAD_PATH "${{ inputs.url }}"
+        fi
+
+        CHECKSUM="${{ inputs.checksum }}"
+        EXPECTED_HASH="${CHECKSUM#sha256:}"
+        
+        echo "Verifying checksum..."
+        ACTUAL_HASH=$(sha256sum $DOWNLOAD_PATH | awk '{print $1}')
+        
+        if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+          echo "Checksum verification failed!"
+          echo "Expected: $EXPECTED_HASH"
+          echo "Got: $ACTUAL_HASH"
+          exit 1
+        fi
+        
+        echo "Checksum verified successfully"
+
+        SOURCE_PATH="$DOWNLOAD_PATH"
+
+        if [ "${{ inputs.extract }}" = "true" ]; then
+          EXTRACT_DIR="/tmp/${{ inputs.name }}-extract"
+          mkdir -p $EXTRACT_DIR
+
+          echo "Extracting archive from $DOWNLOAD_PATH to $EXTRACT_DIR..."
+
+          tar -zxvf $DOWNLOAD_PATH -C $EXTRACT_DIR
+          
+          BINARY_PATH="$EXTRACT_DIR/${{ inputs.binary-path }}"
+          SOURCE_PATH="$EXTRACT_DIR/${{ inputs.name }}"
+
+          if [ -f "$BINARY_PATH" ]; then
+            SOURCE_PATH="$BINARY_PATH"
+          fi
+        fi
+        
+        cp $SOURCE_PATH "$DESTINATION_DIR/${{ inputs.name }}"
+        chmod +x "$DESTINATION_DIR/${{ inputs.name }}"
+        
+        echo "${{ inputs.name }} installed successfully in $DESTINATION_DIR"
