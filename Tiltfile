@@ -14,22 +14,10 @@ allow_k8s_contexts('kind-random-quote-cluster')
 print('Ensuring base cluster setup exist...')
 local(tools('ctlptl apply -f kind/cluster.yaml'), quiet=False, echo_off=False)
 local(tools('ctlptl apply -f kind/registry.yaml'), quiet=False, echo_off=False)
-
-print('Configuring kubectl context...')
-print(tools('kubectl config current-context'))
-local(tools('kubectl config use-context kind-random-quote-cluster'), quiet=False, echo_off=False)
-
-print('Waiting for nodes to be ready...')
-local(tools('kubectl wait --for=condition=Ready nodes --all --timeout=90s'), quiet=False, echo_off=False)
-
-print('Verifying API server is responsive...')
-local(tools('kubectl get --raw /healthz'), quiet=False, echo_off=False)
-
-print('Verifying kubeconfig is valid...')
-local(tools('kubectl config view --minify --context kind-random-quote-cluster'), quiet=False, echo_off=False)
-
-print('Creating namespace...')
 local(tools('kubectl apply -f kind/namespace.yaml'), quiet=False, echo_off=False)
+
+print(local(tools('kubectl config current-context'), quiet=False, echo_off=False))
+print(local('cat ~/.kube/config', quiet=False, echo_off=False))
 
 print('Cluster setup complete')
 
