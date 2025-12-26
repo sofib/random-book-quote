@@ -79,5 +79,6 @@ local_resource(
     'manual-run',
     cmd=tools('kubectl create job --from cronjob/random-quote -n %s test-job-$(date +%%s)' % NAMESPACE),
     labels=['random-quote'],
+    auto_init=False,
     trigger_mode=TRIGGER_MODE_MANUAL,
 )
