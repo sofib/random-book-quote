@@ -16,8 +16,12 @@ local(tools('ctlptl apply -f kind/cluster.yaml'), quiet=False, echo_off=False)
 local(tools('ctlptl apply -f kind/registry.yaml'), quiet=False, echo_off=False)
 local(tools('kubectl apply -f kind/namespace.yaml'), quiet=False, echo_off=False)
 
-print(local(tools('kubectl config current-context'), quiet=False, echo_off=False))
-print(local('cat ~/.kube/config', quiet=False, echo_off=False))
+# Config in CI was generated incorrectly, setting it manually, ensuring only one
+local(
+    tools('kind get kubeconfig --name random-quote-cluster > ~/.kube/config'),
+    quiet=False,
+    echo_off=False,
+)
 
 print('Cluster setup complete')
 
