@@ -54,8 +54,6 @@ runs:
           curl -fsSL -o $DOWNLOAD_PATH "${{ inputs.url }}"
         fi
 
-        ls -la $DOWNLOAD_PATH
-        
         CHECKSUM="${{ inputs.checksum }}"
         EXPECTED_HASH="${CHECKSUM#sha256:}"
         
@@ -83,7 +81,7 @@ runs:
           
           BINARY_PATH="$EXTRACT_DIR/${{ inputs.binary-path }}"
           SOURCE_PATH="$EXTRACT_DIR/${{ inputs.name }}"
-          ls -la $EXTRACT_DIR
+
           if [ -f "$BINARY_PATH" ]; then
             SOURCE_PATH="$BINARY_PATH"
           fi
