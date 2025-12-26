@@ -55,7 +55,6 @@ jobs:
 
       - name: Start tilt
         run: |
-          ls -la ./tools
           ./tools/tilt ci --output-snapshot-on-exit=snapshot.json --timeout=2m
       
       - name: Upload snapshot artifact
